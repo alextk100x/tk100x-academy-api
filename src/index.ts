@@ -3,6 +3,7 @@ import { cors } from 'hono/cors';
 import { authRoutes } from './routes/auth';
 import { webhookRoutes } from './routes/webhooks';
 import { accessRoutes } from './routes/access';
+import { progressRoutes } from './routes/progress';
 
 export type Env = {
   DB: D1Database;
@@ -33,5 +34,6 @@ app.get('/', (c) => c.json({ status: 'ok', service: 'tk100x-academy-api' }));
 app.route('/auth', authRoutes);
 app.route('/webhooks', webhookRoutes);
 app.route('/api', accessRoutes);
+app.route('/api', progressRoutes);
 
 export default app;
