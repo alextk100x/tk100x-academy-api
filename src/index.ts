@@ -4,11 +4,13 @@ import { authRoutes } from './routes/auth';
 import { webhookRoutes } from './routes/webhooks';
 import { accessRoutes } from './routes/access';
 import { progressRoutes } from './routes/progress';
+import { checkoutRoutes } from './routes/checkout';
 
 export type Env = {
   DB: D1Database;
   CORS_ORIGIN: string;
   RESEND_API_KEY: string;
+  STRIPE_SECRET_KEY: string;
   STRIPE_WEBHOOK_SECRET: string;
   JWT_SECRET: string;
 };
@@ -18,8 +20,8 @@ const app = new Hono<{ Bindings: Env }>();
 // CORS middleware
 app.use('*', async (c, next) => {
   const corsMiddleware = cors({
-    origin: [c.env.CORS_ORIGIN, 'http://localhost:3000'],
-    allowMethods: ['GET', 'POST', 'OPTIONS'],
+    origin: [c.env.CORS_ORIGIN, 'https://academy.tk100x.com', 'http://localhost:3000'],
+    allowMethods: ['GET', 'POST', 'PUT', 'OPTIONS'],
     allowHeaders: ['Content-Type', 'Authorization'],
     credentials: true,
     maxAge: 86400,
@@ -35,5 +37,6 @@ app.route('/auth', authRoutes);
 app.route('/webhooks', webhookRoutes);
 app.route('/api', accessRoutes);
 app.route('/api', progressRoutes);
+app.route('/checkout', checkoutRoutes);
 
 export default app;
