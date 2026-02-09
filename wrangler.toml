@@ -1,0 +1,14 @@
+name = "tk100x-academy-api"
+main = "src/index.ts"
+compatibility_date = "2025-02-01"
+
+[vars]
+CORS_ORIGIN = "https://tk100x.com"
+# RESEND_API_KEY = "" # Add via wrangler secret
+# STRIPE_WEBHOOK_SECRET = "" # Add via wrangler secret
+# JWT_SECRET = "" # Add via wrangler secret
+
+[[d1_databases]]
+binding = "DB"
+database_name = "tk100x-academy-db"
+database_id = "placeholder-replace-after-creation"
