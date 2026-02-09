@@ -53,7 +53,8 @@ auth.post('/send-code', async (c) => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          from: 'TK100X Academy <academy@tk100x.com>',
+          from: 'TK100X Academy <support@tk100x.com>',
+          reply_to: 'support@tk100x.com',
           to: normalizedEmail,
           subject: `Your login code: ${code}`,
           html: `
