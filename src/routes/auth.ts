@@ -20,6 +20,21 @@ async function generateToken(): Promise<string> {
   return Array.from(array, (b) => b.toString(16).padStart(2, '0')).join('');
 }
 
+// Helper: get token from cookie OR Authorization header
+export function getToken(c: any): string | undefined {
+  // Try cookie first
+  const cookieToken = getCookie(c, 'session');
+  if (cookieToken) return cookieToken;
+
+  // Try Authorization header (Bearer token)
+  const authHeader = c.req.header('Authorization');
+  if (authHeader?.startsWith('Bearer ')) {
+    return authHeader.slice(7);
+  }
+
+  return undefined;
+}
+
 // POST /auth/send-code
 auth.post('/send-code', async (c) => {
   const { email } = await c.req.json<{ email: string }>();
@@ -43,7 +58,7 @@ auth.post('/send-code', async (c) => {
     'INSERT INTO auth_codes (id, email, code, expires_at) VALUES (?, ?, ?, ?)'
   ).bind(id, normalizedEmail, code, expiresAt).run();
 
-  // Send email via Resend (will fail gracefully if key not set)
+  // Send email via Resend
   try {
     if (c.env.RESEND_API_KEY) {
       await fetch('https://api.resend.com/emails', {
@@ -58,7 +73,7 @@ auth.post('/send-code', async (c) => {
           to: normalizedEmail,
           subject: `Your login code: ${code}`,
           html: `
-            <div style="font-family: sans-serif; max-width: 400px; margin: 0 auto; padding: 40px 20px;">
+            <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 400px; margin: 0 auto; padding: 40px 20px;">
               <h2 style="color: #1e1b4b;">Your login code</h2>
               <p style="font-size: 36px; font-weight: bold; letter-spacing: 8px; color: #7c3aed; margin: 24px 0;">${code}</p>
               <p style="color: #64748b;">This code expires in 10 minutes.</p>
@@ -109,21 +124,22 @@ auth.post('/verify-code', async (c) => {
     'INSERT INTO sessions (id, email, token, expires_at) VALUES (?, ?, ?, ?)'
   ).bind(sessionId, normalizedEmail, token, expiresAt).run();
 
-  // Set cookie
+  // Set cookie (fallback)
   setCookie(c, 'session', token, {
     httpOnly: true,
     secure: true,
     sameSite: 'None',
     path: '/',
-    maxAge: 30 * 24 * 60 * 60, // 30 days
+    maxAge: 30 * 24 * 60 * 60,
   });
 
-  return c.json({ ok: true, email: normalizedEmail });
+  // Return token in body too (for localStorage-based auth)
+  return c.json({ ok: true, email: normalizedEmail, token });
 });
 
 // GET /auth/session
 auth.get('/session', async (c) => {
-  const token = getCookie(c, 'session');
+  const token = getToken(c);
 
   if (!token) {
     return c.json({ authenticated: false }, 401);
@@ -142,7 +158,7 @@ auth.get('/session', async (c) => {
 
 // POST /auth/logout
 auth.post('/logout', async (c) => {
-  const token = getCookie(c, 'session');
+  const token = getToken(c);
 
   if (token) {
     await c.env.DB.prepare('DELETE FROM sessions WHERE token = ?').bind(token).run();

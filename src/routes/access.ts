@@ -1,12 +1,12 @@
 import { Hono } from 'hono';
-import { getCookie } from 'hono/cookie';
 import type { Env } from '../index';
+import { getToken } from './auth';
 
 const access = new Hono<{ Bindings: Env }>();
 
 // GET /api/access — check if authenticated user has course access
 access.get('/access', async (c) => {
-  const token = getCookie(c, 'session');
+  const token = getToken(c);
 
   if (!token) {
     return c.json({ hasAccess: false, reason: 'not_authenticated' }, 401);

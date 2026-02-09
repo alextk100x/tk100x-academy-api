@@ -1,12 +1,12 @@
 import { Hono } from 'hono';
-import { getCookie } from 'hono/cookie';
 import type { Env } from '../index';
+import { getToken } from './auth';
 
 const progress = new Hono<{ Bindings: Env }>();
 
-// Helper: get authenticated email from session cookie
+// Helper: get authenticated email from session token
 async function getAuthEmail(c: any): Promise<string | null> {
-  const token = getCookie(c, 'session');
+  const token = getToken(c);
   if (!token) return null;
 
   const session = await c.env.DB.prepare(
