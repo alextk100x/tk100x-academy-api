@@ -1,6 +1,7 @@
 name = "tk100x-academy-api"
 main = "src/index.ts"
 compatibility_date = "2025-02-01"
+account_id = "2d60844e25a3418f00e069d10d75e07e"
 
 [vars]
 CORS_ORIGIN = "https://tk100x.com"
@@ -11,4 +12,4 @@ CORS_ORIGIN = "https://tk100x.com"
 [[d1_databases]]
 binding = "DB"
 database_name = "tk100x-academy-db"
-database_id = "placeholder-replace-after-creation"
+database_id = "92340abb-3d0e-466f-82f2-366b83161668"
