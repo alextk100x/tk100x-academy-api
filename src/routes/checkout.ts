@@ -17,17 +17,19 @@ checkout.post('/create-session', async (c) => {
     payment_method_types: ['card'],
     line_items: [
       {
-        price_data: {
-          currency: 'eur',
-          product_data: {
-            name: 'OpenClaw Beginner Course',
-            description: 'Build AI agent systems that actually work. 10 modules, lifetime access.',
-          },
-          unit_amount: 9900, // €99.00
-        },
+        price: 'price_1SzIlz07McihS8Qevo08z8Ol',
         quantity: 1,
       },
     ],
+    invoice_creation: {
+      enabled: true,
+      invoice_data: {
+        description: 'OpenClaw Beginner Course – Lifetime Access',
+        metadata: {
+          course_slug: slug,
+        },
+      },
+    },
     metadata: {
       course_slug: slug,
     },

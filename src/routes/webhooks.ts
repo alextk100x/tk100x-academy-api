@@ -6,9 +6,16 @@ const webhooks = new Hono<{ Bindings: Env }>();
 // POST /webhooks/stripe
 webhooks.post('/stripe', async (c) => {
   const body = await c.req.text();
+  const signature = c.req.header('stripe-signature');
 
-  // TODO: Verify Stripe signature when webhook secret is configured
-  // For now, parse and process
+  // Verify Stripe webhook signature
+  if (c.env.STRIPE_WEBHOOK_SECRET && signature) {
+    const isValid = await verifyStripeSignature(body, signature, c.env.STRIPE_WEBHOOK_SECRET);
+    if (!isValid) {
+      console.error('Invalid Stripe webhook signature');
+      return c.json({ error: 'Invalid signature' }, 401);
+    }
+  }
 
   try {
     const event = JSON.parse(body);
@@ -125,7 +132,7 @@ async function sendWelcomeEmail(env: Env, email: string, courseSlug: string) {
             </div>
 
             <p style="color: #94a3b8; font-size: 12px; margin-top: 40px;">
-              TK100X GmbH, Graz, Austria<br/>
+              Copyright by TK100X GmbH<br/>
               If you have any questions, reply to this email.
             </p>
           </div>
@@ -135,6 +142,41 @@ async function sendWelcomeEmail(env: Env, email: string, courseSlug: string) {
     console.log(`Welcome email sent to ${email}`);
   } catch (err) {
     console.error('Failed to send welcome email:', err);
+  }
+}
+
+// Verify Stripe webhook signature using Web Crypto API
+async function verifyStripeSignature(payload: string, header: string, secret: string): Promise<boolean> {
+  try {
+    const parts = header.split(',').reduce((acc, part) => {
+      const [key, value] = part.split('=');
+      acc[key] = value;
+      return acc;
+    }, {} as Record<string, string>);
+
+    const timestamp = parts['t'];
+    const signature = parts['v1'];
+    if (!timestamp || !signature) return false;
+
+    // Check timestamp tolerance (5 minutes)
+    const now = Math.floor(Date.now() / 1000);
+    if (Math.abs(now - parseInt(timestamp)) > 300) return false;
+
+    const signedPayload = `${timestamp}.${payload}`;
+    const encoder = new TextEncoder();
+    const key = await crypto.subtle.importKey(
+      'raw',
+      encoder.encode(secret),
+      { name: 'HMAC', hash: 'SHA-256' },
+      false,
+      ['sign']
+    );
+    const sig = await crypto.subtle.sign('HMAC', key, encoder.encode(signedPayload));
+    const computed = Array.from(new Uint8Array(sig)).map(b => b.toString(16).padStart(2, '0')).join('');
+
+    return computed === signature;
+  } catch {
+    return false;
   }
 }
 

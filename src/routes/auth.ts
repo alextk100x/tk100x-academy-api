@@ -71,13 +71,13 @@ auth.post('/send-code', async (c) => {
           from: 'TK100X Academy <support@tk100x.com>',
           reply_to: 'support@tk100x.com',
           to: normalizedEmail,
-          subject: `Your login code: ${code}`,
+          subject: 'TK100X Academy login code',
           html: `
             <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 400px; margin: 0 auto; padding: 40px 20px;">
               <h2 style="color: #1e1b4b;">Your login code</h2>
               <p style="font-size: 36px; font-weight: bold; letter-spacing: 8px; color: #7c3aed; margin: 24px 0;">${code}</p>
               <p style="color: #64748b;">This code expires in 10 minutes.</p>
-              <p style="color: #94a3b8; font-size: 12px; margin-top: 40px;">TK100X GmbH, Graz, Austria</p>
+              <p style="color: #94a3b8; font-size: 12px; margin-top: 40px;">Copyright by TK100X GmbH</p>
             </div>
           `,
         }),
